@@ -1,5 +1,8 @@
 """Populate shop database with demo categories, products and real photos.
 
+Products and prices are inspired by the Just (just2010.uz) clothing store
+in Uzbekistan.  Photos come from Unsplash for reliable downloads.
+
 Fetches high quality clothes photos from Unsplash, uploads them to Telegram
 to get permanent file_id references, stores in product_photos, and
 publishes to the configured Telegram channel (if CHANNEL_ID is set).
@@ -25,115 +28,306 @@ from shopbot.channel import publish_product_to_channel
 from shopbot.config import ADMIN_IDS, CHANNEL_ID, DB_PATH, TOKEN
 from shopbot.db import initialize_database, set_product_photos
 
-DEMO_CATEGORIES = ["🧥 Верхняя одежда", "👕 Повседневная", "👟 Обувь"]
+DEMO_CATEGORIES = [
+    "🧥 Верхняя одежда",
+    "👕 Футболки и поло",
+    "🧶 Худи и свитшоты",
+    "👔 Рубашки",
+    "👖 Джинсы и брюки",
+    "🧣 Свитеры и кардиганы",
+    "👟 Обувь",
+    "🎒 Сумки и аксессуары",
+]
 
+# ---------------------------------------------------------------------------
+# ~30 products inspired by Just (just2010.uz) catalog with Unsplash photos
+# ---------------------------------------------------------------------------
 DEMO_PRODUCTS = [
+    # ── 🧥 Верхняя одежда (5) ────────────────────────────────────────────
     {
         "category": "🧥 Верхняя одежда",
-        "name": "Пуховик",
-        "description": "Тёплый зимний пуховик, водоотталкивающая ткань",
-        "price": "890000",
+        "name": "Куртка стёганая",
+        "description": "Стёганая демисезонная куртка, водоотталкивающая ткань, молния YKK",
+        "price": "489900",
         "image_urls": [
             "https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
         "category": "🧥 Верхняя одежда",
-        "name": "Тренч",
-        "description": "Классический тренч бежевого цвета, хлопок",
-        "price": "750000",
+        "name": "Ветровка с капюшоном",
+        "description": "Лёгкая ветровка из нейлона с регулируемым капюшоном, унисекс",
+        "price": "349900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🧥 Верхняя одежда",
+        "name": "Жилетка утеплённая",
+        "description": "Утеплённая жилетка на синтепоне, стоячий воротник",
+        "price": "299900",
         "image_urls": [
             "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
         "category": "🧥 Верхняя одежда",
-        "name": "Кожаная куртка",
-        "description": "Куртка из натуральной кожи, чёрная",
-        "price": "1200000",
+        "name": "Пальто классическое",
+        "description": "Мужское пальто из шерстяной ткани, приталенный силуэт",
+        "price": "699900",
         "image_urls": [
-            "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
         "category": "🧥 Верхняя одежда",
-        "name": "Ветровка",
-        "description": "Лёгкая ветровка с капюшоном, унисекс",
-        "price": "320000",
+        "name": "Анорак",
+        "description": "Спортивный анорак с карманом-кенгуру, ветрозащитный",
+        "price": "379900",
         "image_urls": [
-            "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80",
         ],
     },
+    # ── 👕 Футболки и поло (4) ───────────────────────────────────────────
     {
-        "category": "👕 Повседневная",
+        "category": "👕 Футболки и поло",
         "name": "Футболка оверсайз",
-        "description": "Хлопковая футболка свободного кроя, белая",
-        "price": "150000",
+        "description": "Хлопковая футболка свободного кроя, плотность 220 г/м²",
+        "price": "129900",
         "image_urls": [
             "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
-        "category": "👕 Повседневная",
-        "name": "Худи",
-        "description": "Худи с капюшоном, флисовая подкладка",
-        "price": "280000",
+        "category": "👕 Футболки и поло",
+        "name": "Футболка с принтом",
+        "description": "Стильная футболка с графическим принтом, 100% хлопок",
+        "price": "149900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👕 Футболки и поло",
+        "name": "Поло классическое",
+        "description": "Мужское поло с воротником, хлопок-пике, вышитый логотип",
+        "price": "189900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👕 Футболки и поло",
+        "name": "Футболка базовая",
+        "description": "Базовая однотонная футболка, удлинённый крой, чёрная",
+        "price": "99900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 🧶 Худи и свитшоты (4) ──────────────────────────────────────────
+    {
+        "category": "🧶 Худи и свитшоты",
+        "name": "Худи с капюшоном",
+        "description": "Худи из французского трикотажа, флисовая подкладка",
+        "price": "279900",
         "image_urls": [
             "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
-        "category": "👕 Повседневная",
-        "name": "Джинсы прямые",
-        "description": "Классические прямые джинсы, синий деним",
-        "price": "350000",
+        "category": "🧶 Худи и свитшоты",
+        "name": "Свитшот базовый",
+        "description": "Базовый свитшот без капюшона, рибана на манжетах",
+        "price": "229900",
         "image_urls": [
-            "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1578768079470-0a4536cc5f77?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
-        "category": "👕 Повседневная",
+        "category": "🧶 Худи и свитшоты",
+        "name": "Худи на молнии",
+        "description": "Спортивное худи на молнии, два боковых кармана",
+        "price": "299900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🧶 Худи и свитшоты",
+        "name": "Свитшот с принтом",
+        "description": "Свитшот с авторским принтом, oversize крой",
+        "price": "249900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1614495039893-f3d6c930f212?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 👔 Рубашки (3) ──────────────────────────────────────────────────
+    {
+        "category": "👔 Рубашки",
         "name": "Рубашка льняная",
-        "description": "Лёгкая рубашка из натурального льна",
-        "price": "270000",
+        "description": "Лёгкая рубашка из натурального льна, свободный крой",
+        "price": "269900",
         "image_urls": [
             "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
+        "category": "👔 Рубашки",
+        "name": "Рубашка в клетку",
+        "description": "Фланелевая рубашка в клетку, утеплённая, кнопки",
+        "price": "249900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👔 Рубашки",
+        "name": "Рубашка оксфорд",
+        "description": "Классическая рубашка Oxford, button-down воротник, белая",
+        "price": "289900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 👖 Джинсы и брюки (5) ───────────────────────────────────────────
+    {
+        "category": "👖 Джинсы и брюки",
+        "name": "Джинсы прямые",
+        "description": "Классические прямые джинсы, синий деним, 100% хлопок",
+        "price": "349900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👖 Джинсы и брюки",
+        "name": "Джинсы slim fit",
+        "description": "Зауженные джинсы с эластаном, тёмно-серые",
+        "price": "379900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👖 Джинсы и брюки",
+        "name": "Брюки чинос",
+        "description": "Брюки чинос из хлопка с эластаном, бежевые",
+        "price": "289900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👖 Джинсы и брюки",
+        "name": "Джоггеры",
+        "description": "Спортивные джоггеры из трикотажа, манжеты на резинке",
+        "price": "219900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👖 Джинсы и брюки",
+        "name": "Шорты карго",
+        "description": "Шорты карго с накладными карманами, хлопок",
+        "price": "179900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 🧣 Свитеры и кардиганы (3) ──────────────────────────────────────
+    {
+        "category": "🧣 Свитеры и кардиганы",
+        "name": "Свитер с горлом",
+        "description": "Мужской свитер с высоким горлом, шерсть-акрил",
+        "price": "329900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1638032776698-b1fd05bd9b84?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🧣 Свитеры и кардиганы",
+        "name": "Кардиган вязаный",
+        "description": "Кардиган крупной вязки на пуговицах, oversize",
+        "price": "359900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1434389677669-e08b4cda3a20?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🧣 Свитеры и кардиганы",
+        "name": "Джемпер хлопковый",
+        "description": "Лёгкий джемпер из мерсеризованного хлопка, V-горловина",
+        "price": "269900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1614975059251-992f11792571?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 👟 Обувь (4) ────────────────────────────────────────────────────
+    {
         "category": "👟 Обувь",
-        "name": "Кроссовки",
-        "description": "Спортивные кроссовки, дышащая сетка",
-        "price": "450000",
+        "name": "Кроссовки спортивные",
+        "description": "Лёгкие кроссовки с дышащей сеткой, EVA подошва",
+        "price": "449900",
         "image_urls": [
             "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
         "category": "👟 Обувь",
-        "name": "Ботинки челси",
-        "description": "Кожаные ботинки челси, осень-весна",
-        "price": "680000",
-        "image_urls": [
-            "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=800&q=80",
-        ],
-    },
-    {
-        "category": "👟 Обувь",
-        "name": "Кеды",
-        "description": "Классические белые кеды, хлопковый верх",
-        "price": "250000",
+        "name": "Кеды классические",
+        "description": "Белые кеды из плотного хлопка, резиновая подошва",
+        "price": "249900",
         "image_urls": [
             "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=800&q=80",
         ],
     },
     {
         "category": "👟 Обувь",
-        "name": "Лоферы",
-        "description": "Замшевые лоферы, бежевые",
-        "price": "520000",
+        "name": "Лоферы замшевые",
+        "description": "Замшевые лоферы, кожаная стелька, бежевые",
+        "price": "529900",
         "image_urls": [
             "https://images.unsplash.com/photo-1614252369475-531eba835eb1?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "👟 Обувь",
+        "name": "Ботинки челси",
+        "description": "Кожаные ботинки челси, эластичные вставки, осень-весна",
+        "price": "589900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    # ── 🎒 Сумки и аксессуары (3) ───────────────────────────────────────
+    {
+        "category": "🎒 Сумки и аксессуары",
+        "name": "Рюкзак городской",
+        "description": "Городской рюкзак с отделением для ноутбука 15.6\", водонепроницаемый",
+        "price": "329900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🎒 Сумки и аксессуары",
+        "name": "Сумка через плечо",
+        "description": "Компактная сумка через плечо, экокожа, чёрная",
+        "price": "189900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80",
+        ],
+    },
+    {
+        "category": "🎒 Сумки и аксессуары",
+        "name": "Ремень кожаный",
+        "description": "Ремень из натуральной кожи, металлическая пряжка, коричневый",
+        "price": "149900",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1624222247344-550fb60583dc?auto=format&fit=crop&w=800&q=80",
         ],
     },
 ]
@@ -208,7 +402,8 @@ def seed_with_images():
             for row in conn.execute("SELECT id, name FROM categories").fetchall()
         }
 
-        for item in DEMO_PRODUCTS:
+        total = len(DEMO_PRODUCTS)
+        for idx, item in enumerate(DEMO_PRODUCTS, 1):
             cat_name = item["category"]
             prod_name = item["name"]
             desc = item["description"]
@@ -216,6 +411,7 @@ def seed_with_images():
             cat_id = categories.get(cat_name)
 
             if cat_id is None:
+                print(f"  ⚠️ Категория «{cat_name}» не найдена, пропуск")
                 continue
 
             existing = conn.execute(
@@ -225,7 +421,7 @@ def seed_with_images():
 
             if existing:
                 product_id = existing["id"]
-                print(f"  🔄 Обновление товара #{product_id}: {prod_name}")
+                print(f"  🔄 [{idx}/{total}] Обновление товара #{product_id}: {prod_name}")
             else:
                 cursor = conn.execute(
                     """
@@ -235,7 +431,7 @@ def seed_with_images():
                     (cat_id, prod_name, desc, price),
                 )
                 product_id = cursor.lastrowid
-                print(f"  ✅ Создан товар #{product_id}: {prod_name} — {price} UZS")
+                print(f"  ✅ [{idx}/{total}] Создан товар #{product_id}: {prod_name} — {price} UZS")
 
             photos_rows = conn.execute(
                 "SELECT file_id FROM product_photos WHERE product_id = ?",
@@ -272,7 +468,7 @@ def seed_with_images():
 
         conn.commit()
 
-    print("\n🎉 Автосидинг с фото успешно завершен!")
+    print(f"\n🎉 Автосидинг с фото успешно завершен! ({total} товаров)")
 
 
 if __name__ == "__main__":

@@ -6,8 +6,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from telebot import types
-
 
 class ChannelShopSpecTests(unittest.TestCase):
     @classmethod
@@ -193,10 +191,11 @@ class ChannelShopSpecTests(unittest.TestCase):
                 (json.dumps([301]),),
             )
 
-        cleaned = cleanup_out_of_stock_posts(bot=mock_bot)
-        self.assertEqual(cleaned, 1)
-        mock_bot.delete_message.assert_any_call(chat_id="@test_channel", message_id=101)
-        mock_bot.delete_message.assert_any_call(chat_id="@test_channel", message_id=102)
+        with patch("scripts.cleanup_channel.CHANNEL_ID", "@test_channel"):
+            cleaned = cleanup_out_of_stock_posts(bot=mock_bot)
+            self.assertEqual(cleaned, 1)
+            mock_bot.delete_message.assert_any_call(chat_id="@test_channel", message_id=101)
+            mock_bot.delete_message.assert_any_call(chat_id="@test_channel", message_id=102)
 
         # Check DB state
         with self.db.database() as conn:

@@ -54,6 +54,18 @@ def customer_menu_keyboard():
     return keyboard
 
 
+def phone_request_keyboard(user_id: int):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard.row(
+        types.KeyboardButton(
+            translate(user_id, "btn_send_contact"),
+            request_contact=True,
+        )
+    )
+    keyboard.row(types.KeyboardButton(translate(user_id, "btn_cancel")))
+    return keyboard
+
+
 def admin_menu_keyboard():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(
@@ -183,7 +195,7 @@ def category_pagination_keyboard(
     return keyboard
 
 
-def admin_photo_upload_keyboard(user_id: int, count: int):
+def admin_photo_upload_keyboard(user_id: int, count: int, allow_skip: bool = True):
     keyboard = types.InlineKeyboardMarkup()
     if count > 0:
         keyboard.add(
@@ -192,10 +204,79 @@ def admin_photo_upload_keyboard(user_id: int, count: int):
                 callback_data="admin_prod:photo_done",
             )
         )
+    elif allow_skip:
+        keyboard.add(
+            types.InlineKeyboardButton(
+                translate(user_id, "btn_skip_photo"),
+                callback_data="admin_prod:photo_done",
+            )
+        )
     keyboard.add(
         types.InlineKeyboardButton(
             translate(user_id, "btn_cancel"),
             callback_data="admin_prod:cancel",
+        )
+    )
+    return keyboard
+
+
+def admin_edit_product_keyboard(user_id: int, product_id: int, photos_count: int = 0):
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.row(
+        types.InlineKeyboardButton(
+            translate(user_id, "edit_field_name"),
+            callback_data=f"admin_edit_field:{product_id}:name",
+        ),
+        types.InlineKeyboardButton(
+            translate(user_id, "edit_field_category"),
+            callback_data=f"admin_edit_field:{product_id}:category",
+        ),
+    )
+    keyboard.row(
+        types.InlineKeyboardButton(
+            translate(user_id, "edit_field_price"),
+            callback_data=f"admin_edit_field:{product_id}:price",
+        ),
+        types.InlineKeyboardButton(
+            translate(user_id, "edit_field_desc"),
+            callback_data=f"admin_edit_field:{product_id}:desc",
+        ),
+    )
+    keyboard.row(
+        types.InlineKeyboardButton(
+            translate(user_id, "edit_field_photos", count=photos_count),
+            callback_data=f"admin_edit_field:{product_id}:photos",
+        )
+    )
+    keyboard.row(
+        types.InlineKeyboardButton(
+            translate(user_id, "btn_finish_editing"),
+            callback_data=f"admin_edit_field:{product_id}:done",
+        )
+    )
+    return keyboard
+
+
+def admin_edit_category_keyboard(user_id: int, product_id: int, categories):
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    buttons = [
+        types.InlineKeyboardButton(
+            cat["name"],
+            callback_data=f"admin_set_cat:{product_id}:{cat['id']}",
+        )
+        for cat in categories
+    ]
+    keyboard.add(*buttons)
+    keyboard.add(
+        types.InlineKeyboardButton(
+            translate(user_id, "category_new_button"),
+            callback_data=f"admin_set_cat:{product_id}:new",
+        )
+    )
+    keyboard.add(
+        types.InlineKeyboardButton(
+            translate(user_id, "btn_cancel"),
+            callback_data=f"admin_set_cat:{product_id}:cancel",
         )
     )
     return keyboard

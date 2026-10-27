@@ -22,11 +22,34 @@ try:
 except ValueError:
     AUTO_DELETE_OUT_OF_STOCK_DAYS = 7
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
+LOG_FILE = BASE_DIR / "bot.log"
 logger = logging.getLogger("tg_shop")
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    from logging.handlers import RotatingFileHandler
+
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] [%(name)s]: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    file_handler = RotatingFileHandler(
+        LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+
+def log_action(user_id: int, username: str | None, action: str, details: str = ""):
+    user_label = f"@{username}" if username else f"ID:{user_id}"
+    extra = f" | {details}" if details else ""
+    logger.info("USER_ACTION [%s]: %s%s", user_label, action, extra)
+
 
 if not TOKEN:
     raise RuntimeError("Set TELEGRAM_BOT_TOKEN in the .env file before starting the bot.")

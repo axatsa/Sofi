@@ -6,7 +6,7 @@ from telebot import types
 from telebot.apihelper import ApiTelegramException
 
 from .common import money
-from .config import CHANNEL_ID, CURRENCY
+from .config import CHANNEL_ID
 from .db import database, get_product_photos
 
 logger = logging.getLogger("tg_shop.channel")
@@ -131,7 +131,7 @@ def publish_product_to_channel(bot, product_id: int) -> list[int] | None:
         return None
 
 
-def update_channel_post(bot, product_id: int, is_available: bool) -> bool:
+def update_channel_post(bot, product_id: int, is_available: bool | None = None) -> bool:
     if not CHANNEL_ID:
         return False
 
@@ -142,6 +142,9 @@ def update_channel_post(bot, product_id: int, is_available: bool) -> bool:
         if not product:
             return False
         photos = get_product_photos(connection, product_id)
+
+    if is_available is None:
+        is_available = bool(product["is_available"])
 
     raw_ids = product["channel_message_ids"]
     if not raw_ids:
