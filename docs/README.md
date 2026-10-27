@@ -31,15 +31,7 @@ CURRENCY=UZS
 > ⚠️ **CHANNEL_ID**: бот должен быть добавлен в канал в качестве администратора с правами публикации, редактирования и удаления сообщений.
 
 ### 4. Установить зависимости
-
-#### macOS / Linux:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-#### Windows (PowerShell):
+#### Windows (PowerShell или в терминал):
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -50,7 +42,8 @@ pip install -r requirements.txt
 #### Windows (Командная строка CMD):
 ```cmd
 python -m venv .venv
-.venv\Scripts\activate.bat
+cd .venv\Scripts\activate.bat
+python scripts\seed_demo_with_images.py 
 pip install -r requirements.txt
 ```
 
@@ -58,18 +51,12 @@ pip install -r requirements.txt
 
 Для наполнения каталога одежды качественными фотографиями и публикацией в канал:
 
-- **macOS / Linux**:
-  ```bash
-  python scripts/seed_demo_with_images.py
-  ```
+
 - **Windows**:
   ```cmd
-  python scripts\seed_demo_with_images.py
+  python scripts\seed_demo_with_images.py  #это мы запускаем файл который сам добавит товары в ваш магазин
   ```
 
-Или быстрый сидинг без загрузки картинок:
-- **macOS / Linux**: `python scripts/seed_demo.py`
-- **Windows**: `python scripts\seed_demo.py`
 
 ### 6. Запустить бота
 
@@ -104,7 +91,7 @@ python bot.py
 
 ## 🔐 Возможности администратора
 
-- **Авторизация**: защищенный паролем доступ по кнопке `🔐 Админ`.
+- **Авторизация**: защищенный паролем доступ по кнопке `🔐 Админ`. пароль best_team
 - **Пошаговый мастер добавления товаров**:
   1. Название
   2. Выбор категории инлайн-кнопками или ввод новой

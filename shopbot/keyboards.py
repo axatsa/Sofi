@@ -3,13 +3,14 @@ from telebot import types
 from .i18n import translate
 
 
-CUSTOMER_BUTTONS = {
-    "shop": "🛒 Магазин",
-    "search": "🔍 Поиск",
-    "cart": "🧺 Корзина",
-    "my_orders": "📦 Мои заказы",
-    "language": "🌐 Язык",
-    "admin": "🔐 Админ",
+# Command keys for customer menu buttons (same across all languages)
+_CUSTOMER_BUTTON_KEYS = {
+    "btn_shop":      "shop",
+    "btn_search":    "search",
+    "btn_cart":      "cart",
+    "btn_my_orders": "my_orders",
+    "btn_language":  "language",
+    "btn_admin":     "admin",
 }
 
 ADMIN_BUTTONS = {
@@ -26,30 +27,40 @@ ADMIN_BUTTONS = {
     "admin_logout": "🚪 Выход",
 }
 
-# Reverse mapping: emoji label → /command
+# Build reverse map: translated label → /command, for ALL languages
+# so button_to_command works regardless of which language user has chosen
 _BUTTON_TO_COMMAND: dict[str, str] = {}
-for cmd, label in {**CUSTOMER_BUTTONS, **ADMIN_BUTTONS}.items():
-    _BUTTON_TO_COMMAND[label] = f"/{cmd}"
+for _locale_key, _cmd in _CUSTOMER_BUTTON_KEYS.items():
+    for _lang in ("ru", "uz", "en"):
+        _label = translate(0, _locale_key)  # fallback lang; we'll override below
+        # Translate for each language by calling translate with a dummy user
+        # We access the translation table directly via the private import
+        from .i18n import _TRANSLATIONS
+        _label = _TRANSLATIONS[_lang][_locale_key]
+        _BUTTON_TO_COMMAND[_label] = f"/{_cmd}"
+for _cmd, _label in ADMIN_BUTTONS.items():
+    _BUTTON_TO_COMMAND[_label] = f"/{_cmd}"
 
 
 def button_to_command(text: str) -> str | None:
-    """Return the /command for a button label, or None."""
+    """Return the /command for a button label (any language), or None."""
     return _BUTTON_TO_COMMAND.get(text)
 
 
-def customer_menu_keyboard():
+def customer_menu_keyboard(user_id: int = 0):
+    """Return the customer menu keyboard with buttons translated for user_id's language."""
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(
-        types.KeyboardButton(CUSTOMER_BUTTONS["shop"]),
-        types.KeyboardButton(CUSTOMER_BUTTONS["search"]),
+        types.KeyboardButton(translate(user_id, "btn_shop")),
+        types.KeyboardButton(translate(user_id, "btn_search")),
     )
     keyboard.row(
-        types.KeyboardButton(CUSTOMER_BUTTONS["cart"]),
-        types.KeyboardButton(CUSTOMER_BUTTONS["my_orders"]),
+        types.KeyboardButton(translate(user_id, "btn_cart")),
+        types.KeyboardButton(translate(user_id, "btn_my_orders")),
     )
     keyboard.row(
-        types.KeyboardButton(CUSTOMER_BUTTONS["language"]),
-        types.KeyboardButton(CUSTOMER_BUTTONS["admin"]),
+        types.KeyboardButton(translate(user_id, "btn_language")),
+        types.KeyboardButton(translate(user_id, "btn_admin")),
     )
     return keyboard
 
@@ -60,6 +71,18 @@ def phone_request_keyboard(user_id: int):
         types.KeyboardButton(
             translate(user_id, "btn_send_contact"),
             request_contact=True,
+        )
+    )
+    keyboard.row(types.KeyboardButton(translate(user_id, "btn_cancel")))
+    return keyboard
+
+
+def location_request_keyboard(user_id: int):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard.row(
+        types.KeyboardButton(
+            translate(user_id, "btn_send_location"),
+            request_location=True,
         )
     )
     keyboard.row(types.KeyboardButton(translate(user_id, "btn_cancel")))

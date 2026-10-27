@@ -16,10 +16,12 @@ from .keyboards import (
     category_keyboard,
     customer_menu_keyboard,
     language_keyboard,
+    location_request_keyboard,
     out_of_stock_keyboard,
     phone_request_keyboard,
     product_keyboard,
 )
+
 from .state import (
     authenticated_admin,
     pending_admin,
@@ -279,7 +281,7 @@ def start(message):
         message,
         text,
         parse_mode="HTML",
-        reply_markup=customer_menu_keyboard(),
+        reply_markup=customer_menu_keyboard(user_id),
     )
 
 
@@ -317,7 +319,7 @@ def admin_help(message):
     bot.reply_to(
         message,
         translate(user_id, "admin_password_prompt"),
-        reply_markup=customer_menu_keyboard(),
+        reply_markup=customer_menu_keyboard(user_id),
     )
 
 
@@ -331,7 +333,7 @@ def admin_logout(message):
     bot.reply_to(
         message,
         translate(user_id, "admin_logged_out"),
-        reply_markup=customer_menu_keyboard(),
+        reply_markup=customer_menu_keyboard(user_id),
     )
 
 
@@ -446,6 +448,7 @@ def callback_handler(call):
             bot.send_message(
                 call.message.chat.id,
                 translate(user_id, "language_saved"),
+                reply_markup=customer_menu_keyboard(user_id),
             )
             return
 
@@ -569,7 +572,7 @@ def callback_handler(call):
 
 
 @bot.message_handler(
-    content_types=["text", "contact"],
+    content_types=["text", "contact", "location"],
     func=lambda message: message.from_user.id in pending_checkout
     and message.from_user.id not in pending_admin
     and message.from_user.id not in pending_admin_login,
@@ -580,18 +583,24 @@ def handle_checkout_input(message):
     state = pending_checkout[user_id]
     step = state["step"]
 
-    # Allow cancellation at any checkout step
-    if message.content_type == "text" and (
-        message.text in ("/cancel", translate(user_id, "btn_cancel"), "❌ Отмена")
-    ):
-        pending_checkout.pop(user_id, None)
-        log_action(user_id, username, "CHECKOUT_CANCELLED")
-        bot.reply_to(
-            message,
-            translate(user_id, "cancelled"),
-            reply_markup=customer_menu_keyboard(),
-        )
-        return
+    # Allow cancellation or switching to another menu button at any checkout step
+    if message.content_type == "text":
+        cmd = button_to_command((message.text or "").strip())
+        if cmd:
+            pending_checkout.pop(user_id, None)
+            log_action(user_id, username, "CHECKOUT_INTERRUPTED_BY_BUTTON", cmd)
+            message.text = cmd
+            bot.process_new_messages([message])
+            return
+        if message.text in ("/cancel", translate(user_id, "btn_cancel"), "❌ Отмена"):
+            pending_checkout.pop(user_id, None)
+            log_action(user_id, username, "CHECKOUT_CANCELLED")
+            bot.reply_to(
+                message,
+                translate(user_id, "cancelled"),
+                reply_markup=customer_menu_keyboard(user_id),
+            )
+            return
 
     if step == "name":
         if not message.text or message.text.startswith("/"):
@@ -632,15 +641,49 @@ def handle_checkout_input(message):
         bot.reply_to(
             message,
             translate(user_id, "address_prompt"),
-            reply_markup=telebot.types.ReplyKeyboardRemove(),
+            reply_markup=location_request_keyboard(user_id),
         )
 
     elif step == "address":
-        if not message.text or message.text.startswith("/"):
-            bot.reply_to(message, translate(user_id, "checkout_text_only"))
+        address = None
+
+        # 1. Telegram native location
+        if message.content_type == "location" and message.location:
+            lat = message.location.latitude
+            lon = message.location.longitude
+            address = f"📍 https://maps.google.com/?q={lat},{lon}"
+            log_action(user_id, username, "CHECKOUT_LOCATION_SHARED", address)
+
+        elif message.content_type == "text" and message.text:
+            text = message.text.strip()
+            if text.startswith("/"):
+                bot.reply_to(message, translate(user_id, "checkout_text_only"))
+                return
+
+            # 2. Google Maps link
+            if "maps.google" in text or "goo.gl/maps" in text or "maps.app.goo" in text:
+                address = f"🗺 Google Maps: {text}"
+                log_action(user_id, username, "CHECKOUT_GOOGLEMAPS_LINK", text)
+
+            # 3. Yandex Maps link
+            elif "yandex" in text and ("maps" in text or "navi" in text or "go.yandex" in text):
+                address = f"🗺 Яндекс.Карты: {text}"
+                log_action(user_id, username, "CHECKOUT_YANDEXMAPS_LINK", text)
+
+            # 4. Plain text address
+            elif len(text) >= 3:
+                address = text
+                log_action(user_id, username, "CHECKOUT_ADDRESS_ENTERED", text)
+
+        if not address:
+            bot.reply_to(
+                message,
+                translate(user_id, "address_invalid"),
+                reply_markup=location_request_keyboard(user_id),
+            )
             return
-        state["address"] = message.text.strip()
-        log_action(user_id, username, "CHECKOUT_ADDRESS_ENTERED", state["address"])
+
+        state["address"] = address
         create_order(message, state)
 
 
@@ -650,6 +693,12 @@ def handle_checkout_input(message):
 )
 def handle_search_input(message):
     user_id = message.from_user.id
+    cmd = button_to_command((message.text or "").strip())
+    if cmd:
+        pending_search.discard(user_id)
+        message.text = cmd
+        bot.process_new_messages([message])
+        return
     if not message.text or message.text.startswith("/"):
         bot.reply_to(message, translate(user_id, "search_prompt"))
         return
@@ -690,7 +739,7 @@ def create_order(message, customer):
             bot.reply_to(
                 message,
                 translate(user_id, "cart_empty"),
-                reply_markup=customer_menu_keyboard(),
+                reply_markup=customer_menu_keyboard(user_id),
             )
             return
         total = sum(
@@ -737,7 +786,7 @@ def create_order(message, customer):
             id=order_id,
             total=money(total),
         ),
-        reply_markup=customer_menu_keyboard(),
+        reply_markup=customer_menu_keyboard(user_id),
     )
     for admin_id in ADMIN_IDS:
         try:

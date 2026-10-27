@@ -110,6 +110,29 @@ class LanguageTests(unittest.TestCase):
             {"🛒 Магазин", "🔍 Поиск", "🧺 Корзина", "🔐 Админ"}
             <= customer_buttons
         )
+        # Test Uzbek customer menu buttons
+        self.set_language(101, "uz")
+        uz_buttons = {
+            button["text"]
+            for row in self.customer_menu_keyboard(101).keyboard
+            for button in row
+        }
+        self.assertTrue(
+            {"🛒 Do'kon", "🔍 Qidiruv", "🧺 Savat", "🔐 Admin"}
+            <= uz_buttons
+        )
+
+        # Test English customer menu buttons
+        self.set_language(102, "en")
+        en_buttons = {
+            button["text"]
+            for row in self.customer_menu_keyboard(102).keyboard
+            for button in row
+        }
+        self.assertTrue(
+            {"🛒 Shop", "🔍 Search", "🧺 Cart", "🔐 Admin"}
+            <= en_buttons
+        )
         self.assertTrue(
             {
                 "➕ Категория",
